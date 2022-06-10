@@ -129,8 +129,10 @@ typedef enum
   * @}
   */
 
-#include "core_cm3.h"
-#include "system_stm32f1xx.h"
+//#include "core_cm3.h"
+#define     __O     volatile             /*!< Defines 'write only' permissions */
+#define     __IO    volatile             /*!< Defines 'read / write' permissions */
+//#include "system_stm32f1xx.h"
 #include <stdint.h>
 
 /** @addtogroup Peripheral_registers_structures
