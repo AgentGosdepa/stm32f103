@@ -1,5 +1,5 @@
 #define F_CPU 8000000UL
-//#include "stm32f10x.h"
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -28,26 +28,41 @@ void* memset(void* buf, char z, size_t bytes)
 }
 
 // Задача моргалка. Просто так. Мигает диодиком на порту LED3
-void vBlinker (void *pvParameters)
+void vBlinker1(void *pvParameters)
 {
- while(1)
- {
-  *((unsigned*)0x4001080CUL) ^= (0x1UL << 5U);
-  vTaskDelay(100);      // Выдержка 600мс
-  *((unsigned*)0x4001080CUL) ^= (0x1UL << 5U);
-  vTaskDelay(100);       // Выдержка 20мс
- }
+    while(1)
+    {
+    *((unsigned*)0x50000504UL) ^= (0x1UL << 13U | 0x1UL << 14U);
+    vTaskDelay(100);      // Выдержка 600мс
+    *((unsigned*)0x50000504UL) ^= (0x1UL << 13U | 0x1UL << 14U);
+    vTaskDelay(100);       // Выдержка 20мс
+    }
 }
- 
+
+void vBlinker2(void *pvParameters)
+{
+    while(1)
+    {
+    vTaskDelay(100); 
+    *((unsigned*)0x50000504UL) ^= (0x1UL << 15U | 0x1UL << 16U);
+    vTaskDelay(100);      // Выдержка 600мс
+    *((unsigned*)0x50000504UL) ^= (0x1UL << 15U | 0x1UL << 16U);
+    //vTaskDelay(100);       // Выдержка 20мс
+    }
+}
  
 int main(void)
 {
-  *((unsigned*)0x40021018UL) |= (0x1UL << 2U);
-  *((unsigned*)0x40010800UL) &= ~(0x3UL << 22U);
-  *((unsigned*)0x40010800UL) |= (0x1UL << 20U);
+    *((unsigned*)0x50000734UL) = (1UL<<0UL | 1UL<<1UL | 0UL<<2UL | 0UL<<8UL | 0UL<<16UL); //out p013
+    *((unsigned*)0x50000738UL) = (1UL<<0UL | 1UL<<1UL | 0UL<<2UL | 0UL<<8UL | 0UL<<16UL); //out p014
+    *((unsigned*)0x5000073CUL) = (1UL<<0UL | 1UL<<1UL | 0UL<<2UL | 0UL<<8UL | 0UL<<16UL); //out p015
+    *((unsigned*)0x50000740UL) = (1UL<<0UL | 1UL<<1UL | 0UL<<2UL | 0UL<<8UL | 0UL<<16UL); //out p016
+    *((unsigned*)0x50000508UL) = (0x1UL << 13U | 0x1UL << 14U | 0x1UL << 15U | 0x1UL << 16U); //dis led
 
  
-if(pdTRUE != xTaskCreate(vBlinker,"Blinker",  configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL)) ERROR_ACTION(TASK_NOT_CREATE,0); 
+    //if(pdTRUE != xTaskCreate(vBlinker1, "Blinker1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL)) ERROR_ACTION(TASK_NOT_CREATE,0);
+    
+    if(pdTRUE != xTaskCreate(vBlinker2, "Blinker2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL)) ERROR_ACTION(TASK_NOT_CREATE,0); 
 // Создаем задачи. Если при создании задачи возвращенный параметр не TRUE, то обрабатываем ошибку.
 // vBlinker       - это имя функции которая будет задачей. 
 // "Blinker"      - текстовая строка для отладки. Может быть любой, но длина ограничина в конфиге ОС. Ну и память она тоже ест немного.
@@ -65,7 +80,7 @@ if(pdTRUE != xTaskCreate(vBlinker,"Blinker",  configMINIMAL_STACK_SIZE, NULL, ts
 //        Остальные аналогично.
  
 // Запускаем диспетчер и понеслась.   
-vTaskStartScheduler();
+    vTaskStartScheduler();
 }
 
 
@@ -84,4 +99,21 @@ int main22()
 
   while(1){}
   return 0;
+}
+
+int main33()
+{
+    *((unsigned*)0x50000734UL) = (1UL<<0UL | 1UL<<1UL | 0UL<<2UL | 0UL<<8UL | 0UL<<16UL); //out p013
+    *((unsigned*)0x50000738UL) = (1UL<<0UL | 1UL<<1UL | 0UL<<2UL | 0UL<<8UL | 0UL<<16UL); //out p014
+    *((unsigned*)0x5000073CUL) = (1UL<<0UL | 1UL<<1UL | 0UL<<2UL | 0UL<<8UL | 0UL<<16UL); //out p015
+    *((unsigned*)0x50000740UL) = (1UL<<0UL | 1UL<<1UL | 0UL<<2UL | 0UL<<8UL | 0UL<<16UL); //out p016
+    *((unsigned*)0x50000508UL) = (0x1UL << 13U | 0x1UL << 14U | 0x1UL << 15U | 0x1UL << 16U); //dis led
+    
+    while(1){
+            for(volatile int i=0; i<2000000; i++){}
+              *((unsigned*)0x50000504UL) ^= (0x1UL << 15U | 0x1UL << 16U);
+    }
+
+    while(1){}
+    return 0;
 }
